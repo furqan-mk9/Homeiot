@@ -2,7 +2,6 @@ import os
 import glob
 import time
 import json
-import urllib
 from bluetooth import *
 from firebase import firebase
 
@@ -12,8 +11,8 @@ server_sock.listen(1)
 
 port = server_sock.getsockname()[1]
 
-CURRENT_USER = ''
-FIREBASE_REF = 'https://homeiot.firebaseio.com/' + CURRENT_USER + '/'
+username = ''
+FIREBASE_REF = 'https://homeiot.firebaseio.com/'
 firebase = firebase.FirebaseApplication(FIREBASE_REF, None)
 
 uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
@@ -25,23 +24,31 @@ advertise_service( server_sock, "AquaPiServer",
 #                   protocols = [ OBEX_UUID ] 
                     )
 def init():
-    with open('config.json') as json_file:
+    global username
+    with open('user/config.json') as json_file:
         user_data = json.load(json_file)
-        CURRENT_USER = user_data['username']
-        print 'Logging in as ' + CURRENT_USER + '...'
+        username = user_data['username']
+        print 'Logging in as ' + username + '...'
     return;
 
 def new_unlock(unlocker):
     return;
 
 def sync_lock_history():
-    with open('lock/history.json') as json_file:
-        history_data = json.load(json_file)
     #try:
-    return;
-
-def sync_lock_guests():
-    return;
+        global username
+        with open('user/lock/history.json') as json_file:
+            history_local = json.load(json_file)
+            print username
+            history_remote = firebase.get(username, None)
+            if history_local != history_remote:
+                for record in history_remote:
+                    print record
+        return;
+    #except:
+    #    print 'Error encountered'
+    #   try:
+    
 
 def search_mobile():         
     print "Waiting for connection on RFCOMM channel %d" % port
@@ -63,6 +70,7 @@ def search_mobile():
 	return;
 
 init()
+sync_data()
 '''
 while True:
     check_mobile()
