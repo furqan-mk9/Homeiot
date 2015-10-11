@@ -31,19 +31,30 @@ def init():
         print 'Logging in as ' + username + '...'
     return;
 
+def sync_utc_time():
+    import ntplib, datetime
+    from time import ctime
+    client = ntplib.NTPClient()
+    response = client.request('pool.ntp.org')
+    print datetime.datetime.strptime(ctime(response.tx_time), "%a %b %d %H:%M:%S %Y")
+    return;
+
 def new_unlock(unlocker):
     return;
 
 def sync_lock_history():
     #try:
         global username
+        lock_path = username + '/lock' + '/history'
         with open('user/lock/history.json') as json_file:
             history_local = json.load(json_file)
             print username
-            history_remote = firebase.get(username, None)
+            history_remote = firebase.get(lock_path, None)
             if history_local != history_remote:
                 for record in history_remote:
                     print record
+            #test_unlock = json.load({'username': 'shehzad', 'time': })
+            #firebase.post(lock_path,  
         return;
     #except:
     #    print 'Error encountered'
@@ -70,8 +81,10 @@ def search_mobile():
 	return;
 
 init()
-sync_data()
+sync_utc_time()
 '''
+sync_lock_history()
+
 while True:
     check_mobile()
 '''
