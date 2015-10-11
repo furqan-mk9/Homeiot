@@ -9,6 +9,11 @@ server_sock=BluetoothSocket( RFCOMM )
 server_sock.bind(("",PORT_ANY))
 server_sock.listen(1)
 
+# used json.dumps to get pretty json
+# used json.loads to load json from a string
+# used json.load to load json from json object
+# used ntplib to download time from a remote server
+
 port = server_sock.getsockname()[1]
 
 username = ''
@@ -31,13 +36,14 @@ def init():
         print 'Logging in as ' + username + '...'
     return;
 
-def sync_utc_time():
+def get_utc_time():
     import ntplib, datetime
     from time import ctime
     client = ntplib.NTPClient()
     response = client.request('pool.ntp.org')
-    print datetime.datetime.strptime(ctime(response.tx_time), "%a %b %d %H:%M:%S %Y")
-    return;
+    d = datetime.datetime.strptime(ctime(response.tx_time), '%a %b %d %H:%M:%S %Y')
+    timestamp = d.strftime('%Y%m%d%H%M%S')
+    return timestamp;
 
 def new_unlock(unlocker):
     return;
@@ -45,16 +51,18 @@ def new_unlock(unlocker):
 def sync_lock_history():
     #try:
         global username
-        lock_path = username + '/lock' + '/history'
+        history_path = username + '/lock' + '/history'
         with open('user/lock/history.json') as json_file:
             history_local = json.load(json_file)
             print username
-            history_remote = firebase.get(lock_path, None)
+            history_remote = firebase.get(history_path, None)
+            print json.dumps(history_remote)
+            
             if history_local != history_remote:
-                for record in history_remote:
-                    print record
-            #test_unlock = json.load({'username': 'shehzad', 'time': })
-            #firebase.post(lock_path,  
+                for key in history_remote:
+                    print json.dumps(history_remote[key])
+            #test_unlock = {'username': 'shehzad', 'time': get_utc_time()}
+            #firebase.post(history_path, test_unlock)  
         return;
     #except:
     #    print 'Error encountered'
@@ -81,7 +89,7 @@ def search_mobile():
 	return;
 
 init()
-sync_utc_time()
+sync_lock_history()
 '''
 sync_lock_history()
 
