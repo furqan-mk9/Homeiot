@@ -13,6 +13,8 @@ server_sock.listen(1)
 # used json.loads to load json from a string
 # used json.load to load json from json object
 # used ntplib to download time from a remote server
+# lesson: rpi automatically updates it's time from ntp server setting it to utc
+# lesson: if you have included datetime like [from datetime import datetime] then no need to say datetime.datetime... same for all libs
 
 port = server_sock.getsockname()[1]
 
@@ -36,14 +38,26 @@ def init():
         print 'Logging in as ' + username + '...'
     return;
 
+'''
 def get_utc_time():
     import ntplib, datetime
+    import os
     from time import ctime
     client = ntplib.NTPClient()
     response = client.request('pool.ntp.org')
     d = datetime.datetime.strptime(ctime(response.tx_time), '%a %b %d %H:%M:%S %Y')
+    e = d.strftime('%a %b %d +%H:%M:%S %Y')
     timestamp = d.strftime('%Y%m%d%H%M%S')
+    os.system('date -s %s' % d)
+    
+    print d
     return timestamp;
+'''
+def get_time():
+    from datetime import datetime
+    now = datetime.now()
+    d = now.strftime('%Y%m%d%H%M%S')
+    return d;
 
 def new_unlock(unlocker):
     return;
@@ -62,7 +76,7 @@ def sync_lock_history():
                 for key in history_remote:
                     print json.dumps(history_remote[key])
             #test_unlock = {'username': 'shehzad', 'time': get_utc_time()}
-            #firebase.post(history_path, test_unlock)  
+            firebase.post(history_path, { get_time() : 'badar' })  
         return;
     #except:
     #    print 'Error encountered'
@@ -90,7 +104,10 @@ def search_mobile():
 
 init()
 sync_lock_history()
+get_time()
+
 '''
+get_utc_time()
 sync_lock_history()
 
 while True:
